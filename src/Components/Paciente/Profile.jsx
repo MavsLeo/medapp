@@ -62,7 +62,7 @@ const PatientPublicProfile = ({ patient }) => {
     <Container 
     maxWidth="xs"
     sx={{ 
-      height: '100dvh', 
+      // height: '100dvh', 
       display: 'flex', 
       flexDirection: 'column', 
       justifyContent: 'center',
@@ -88,7 +88,7 @@ const PatientPublicProfile = ({ patient }) => {
               margin: '0 auto 16px',
               border: '4px solid white'
             }}
-            src="/path-to-patient-avatar.jpg"  // Substituir com foto real do paciente
+            src="https://st3.depositphotos.com/10168920/13600/i/450/depositphotos_136001788-stock-photo-a-white-man-with-a.jpg"  // Substituir com foto real do paciente
           />
           <Typography variant="h5">
             {paciente.nome}

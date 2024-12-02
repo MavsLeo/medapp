@@ -41,21 +41,32 @@ import { useClinica } from '../../Context/ClinicaContext ';
 
 // Importar o contexto da clínica
 
-const MedicDashboard = () => {
+const MedicDashboard = ({medicoId,clinicaId}) => {
+console.log('Promps :>> ', medicoId , clinicaId);
+
   const { 
     pacientes, 
     medicos,
-    adicionarPaciente, // eslint-disable-next-line
+    clinicas,
+    adicionarPaciente,
     atualizarPaciente,
-    removerPaciente
+    removerPaciente,
+    buscarMedicoPorId,
+    buscarClinicaPorId,
   } = useClinica();
 
   console.log('pacientes :>> ', pacientes);
+  console.log('medicos :>> ', medicos);
+  console.log('clinicas :>> ', clinicas);
+  console.log("Médico: ",buscarMedicoPorId('3fc15401-10ba-4ce2-8cdc-d3a8b23eabff'))
+  console.log("Clinica: " ,buscarClinicaPorId('d389ff80-2404-4ba3-8f83-f2b3c58c6df9'))
 
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [openPatientDialog, setOpenPatientDialog] = useState(false);
   const [openPatientEditDialog, setOpenPatientEditDialog] = useState(false);
   const [openAddPatientDialog, setOpenAddPatientDialog] = useState(false);
+  const medico = buscarMedicoPorId('3fc15401-10ba-4ce2-8cdc-d3a8b23eabff');
+  const clinica = buscarClinicaPorId('aa48f83e-036f-4432-995d-cf2f57f77e2c');
   const [newPatient, setNewPatient] = useState({
     nome: '',
     dataNascimento: '',
@@ -139,10 +150,10 @@ const MedicDashboard = () => {
               borderRadius: 2 
             }}
           >
-            <HospitalIcon sx={{ mr: 2, fontSize: 40 }} />
+            {clinica.logo ? <img className='rounded' style={{ backgroundColor:"#fff",width: "10rem", }} alt="logo" src={clinica.logo} />:<HospitalIcon sx={{ mr: 2, fontSize: 40 }} />}
             <Box>
               <Typography variant="h4">Painel Médico</Typography>
-              <Typography variant="subtitle1">Dr. Carlos Oliveira - Cardiologia</Typography>
+              <Typography variant="subtitle1">{medico.nomeSocial} - {medico.especialidade}</Typography>
             </Box>
           </Box>
         </Grid>

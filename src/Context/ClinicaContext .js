@@ -37,8 +37,8 @@ export const ClinicaProvider = ({ children }) => {
       : [
         {
           id: uuidv4(), // identificador único
-          nome: 'Dr. Henrique José Portela Junior', // nome completo do médico
-          nomeSocial: 'Dr. Henrique', // nome social ou como prefere ser chamado
+          nome: 'Henrique José Portela Junior', // nome completo do médico
+          nomeSocial: 'Henrique Portela', // nome social ou como prefere ser chamado
           especialidade: 'Cardiologia', // especialidade médica
           crm: '12345-RJ', // número do Conselho Regional de Medicina
           email: 'joao.silva@clinica.com.br', // email profissional
@@ -52,7 +52,7 @@ export const ClinicaProvider = ({ children }) => {
             inicio: '08:00',
             fim: '18:00'
           },
-          planosSaude: ['Unimed', 'Bradesco Saúde'], // planos de saúde atendidos
+          planosSaude: ['Particular','Unimed', 'Bradesco Saúde'], // planos de saúde atendidos
           valorConsulta: 250.00, // valor da consulta
           formacao: [
             {
@@ -87,6 +87,7 @@ export const ClinicaProvider = ({ children }) => {
           id: uuidv4(),
           nome: 'Hospital do Coração e Clinicas de Nova Iguaçu EMCOR',
           nomeResumo: 'Hospital EMCOR',
+          logo:"https://hospitalemcor.com.br/novo/wp-content/uploads/2024/02/emcorsfundo.png",
           cnpj: ' 32074452000104',
           email: 'atendimento@hospitalemcor.com.br',
           telefone: '2137598100',
@@ -96,7 +97,6 @@ export const ClinicaProvider = ({ children }) => {
           cidade: 'Nova Iguaçu',
           bairro: 'Centro',
           CEP: "26210140"
-
         }
       ];
   });
@@ -113,6 +113,7 @@ export const ClinicaProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('clinicas', JSON.stringify(clinicas));
   }, [clinicas]);
+
   useEffect(() => {
     localStorage.setItem('medicos', JSON.stringify(medicos));
   }, [medicos]);
@@ -144,6 +145,34 @@ export const ClinicaProvider = ({ children }) => {
 
   const removerPaciente = (id) => {
     setPacientes(pacientes.filter(paciente => paciente.id !== id));
+  };
+  // Funções de gerenciamento de Médico
+  const adicionarMedico = (novoMedico) => {
+    const medicoComId = {
+      ...novoMedico,
+      id: uuidv4(), // Gera um ID único
+      dataCadastro: new Date().toISOString(),
+      observacaoDoMedico: novoMedico.observacaoDoMedico || '',
+      historicoConsultas: []
+    };
+    setMedicos([...medicos, medicoComId]);
+    return medicoComId;
+  };
+
+  const atualizarMedico = (id, dadosAtualizados) => {
+    setMedicos(medicos.map(medico => 
+      medico.id === id 
+        ? { 
+            ...medico, 
+            ...dadosAtualizados,
+            dataUltimaAtualizacao: new Date().toISOString() 
+          } 
+        : medico
+    ));
+  };
+
+  const removerMedico = (id) => {
+    setMedicos(medicos.filter(medico => medico.id !== id));
   };
 
   // Funções de gerenciamento de consultas
@@ -186,8 +215,16 @@ export const ClinicaProvider = ({ children }) => {
     return pacientes.find(paciente => paciente.id === id);
   };
 
+  const buscarMedicoPorId = (id) => {
+    return medicos.find(medico => medico.id === id);
+  };
+
   const buscarConsultasPaciente = (pacienteId) => {
     return consultas.filter(consulta => consulta.pacienteId === pacienteId);
+  };
+
+  const buscarClinicaPorId = (id) => {
+    return clinicas.find(clinica => clinica.id === id);
   };
 
   return (
@@ -203,6 +240,15 @@ export const ClinicaProvider = ({ children }) => {
       atualizarPaciente,
       removerPaciente,
       buscarPacientePorId,
+
+      // Funções de Médicos
+      adicionarMedico,
+      atualizarMedico,
+      removerMedico,
+      buscarMedicoPorId,
+
+      // Funções de Clínicas
+      buscarClinicaPorId,
 
       // Funções de Consultas
       agendarConsulta,

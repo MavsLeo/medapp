@@ -7,21 +7,25 @@ import {
 } from "react-router-dom";
 import PatientPublicProfile from './Components/Paciente/Profile';
 import MedicDashboard from './Components/Medico';
-import { ClinicaProvider } from './Context/ClinicaContext ';
+import { useState } from 'react';
+import Seletor from './Components/Seletor/Seletor';
+
 
 
 function App() {
+  const [medicoId, setMedicoId]= useState('');
+  const [clinicaId, setClinicaId] = useState('')
+
   return (
-    <ClinicaProvider>
       <div className="App">
         <Router>
           <Routes>
-            <Route path='/' element={<MedicDashboard />}/>
+            <Route path='/' element={<Seletor setMedicoId={setMedicoId} setClinicaId={setClinicaId}/>}/>
+            <Route path='/dashboard' element={<MedicDashboard medicoId={medicoId} clinicaId={clinicaId}/>}/>
             <Route path='paciente/:id' element={<PatientPublicProfile/>}/>
           </Routes>
         </Router>
       </div>
-    </ClinicaProvider>
   );
 }
 
