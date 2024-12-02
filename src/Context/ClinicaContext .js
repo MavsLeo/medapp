@@ -38,7 +38,7 @@ export const ClinicaProvider = ({ children }) => {
         {
           id: uuidv4(), // identificador único
           nome: 'Dr. Henrique José Portela Junior', // nome completo do médico
-          nomeSocial: 'Dr. João', // nome social ou como prefere ser chamado
+          nomeSocial: 'Dr. Henrique', // nome social ou como prefere ser chamado
           especialidade: 'Cardiologia', // especialidade médica
           crm: '12345-RJ', // número do Conselho Regional de Medicina
           email: 'joao.silva@clinica.com.br', // email profissional
