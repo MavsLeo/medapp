@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { 
-  Box, 
-  Typography, 
-  Grid, 
-  Card, 
+import {
+  Box,
+  Typography,
+  Grid,
+  Card,
   CardContent, // eslint-disable-next-line
   Avatar,
   Container,
@@ -13,7 +13,7 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow,// eslint-disable-next-line
+  TableRow, // eslint-disable-next-line
   Paper,
   IconButton,
   Dialog,
@@ -26,64 +26,71 @@ import {
   FormLabel,
   RadioGroup,
   FormControlLabel,
-  Radio
-} from '@mui/material';
-import { 
-  LocalHospital as HospitalIcon, 
+  Radio,
+  MenuItem,
+  Select,
+  InputLabel,
+  Link,
+} from "@mui/material";
+import {
+  LocalHospital as HospitalIcon,
   Favorite as HeartIcon,
   Visibility as ViewIcon,
   Warning as WarningIcon,
   Add as AddIcon,
   Delete as DelIcon,
   Edit as EditIcon,
-} from '@mui/icons-material';
-import { useClinica } from '../../Context/ClinicaContext ';
+} from "@mui/icons-material";
+import { useClinica } from "../../Context/ClinicaContextFb";
+import { QRCodeCanvas } from "qrcode.react";
+import QRCode from "react-qr-code";
 
 // Importar o contexto da clínica
 
-const MedicDashboard = ({medicoId,clinicaId}) => {
-console.log('Promps :>> ', medicoId , clinicaId);
+const MedicDashboard = ({ medicoId, clinicaId }) => {
+  console.log("Promps :>> ", medicoId, clinicaId);
 
-  const { 
-    pacientes, 
+  const {
+    pacientes,
     medicos,
     clinicas,
     adicionarPaciente,
     atualizarPaciente,
     removerPaciente,
-    buscarMedicoPorId,
-    buscarClinicaPorId,
+    // buscarClinicaPorId,
   } = useClinica();
 
-  console.log('pacientes :>> ', pacientes);
-  console.log('medicos :>> ', medicos);
-  console.log('clinicas :>> ', clinicas);
-  console.log("Médico: ",buscarMedicoPorId('3fc15401-10ba-4ce2-8cdc-d3a8b23eabff'))
-  console.log("Clinica: " ,buscarClinicaPorId('d389ff80-2404-4ba3-8f83-f2b3c58c6df9'))
+  console.log("pacientes :>> ", pacientes);
+  console.log("medicos :>> ", medicos);
+  console.log("clinicas :>> ", clinicas);
 
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [openPatientDialog, setOpenPatientDialog] = useState(false);
   const [openPatientEditDialog, setOpenPatientEditDialog] = useState(false);
   const [openAddPatientDialog, setOpenAddPatientDialog] = useState(false);
-  const medico = buscarMedicoPorId('3fc15401-10ba-4ce2-8cdc-d3a8b23eabff');
-  const clinica = buscarClinicaPorId('aa48f83e-036f-4432-995d-cf2f57f77e2c');
+  const [medico, setMedico] = useState("");
+  const [clinica, setClinica] = useState("");
+
+  console.log("Clinica: ", clinica);
+  console.log("Médico: ", medico);
+
   const [newPatient, setNewPatient] = useState({
-    nome: '',
-    dataNascimento: '',
-    email: '',
-    telefone: '',
-    riscoCardiaco: ''
+    nome: "",
+    dataNascimento: "",
+    email: "",
+    telefone: "",
+    riscoCardiaco: "",
   });
   const [editedPatient, setEditedPatient] = useState({
-    nome: '',
-    dataNascimento: '',
-    email: '',
-    telefone: '',
-    riscoCardiaco: '',
-    observacaoDoMedico: ''
+    nome: "",
+    dataNascimento: "",
+    email: "",
+    telefone: "",
+    riscoCardiaco: "",
+    observacaoDoMedico: "",
   });
   const handleDeletePatient = (patient) => {
-    removerPaciente(patient.id)
+    removerPaciente(patient.id);
   };
 
   const handleViewPatient = (patient) => {
@@ -94,23 +101,23 @@ console.log('Promps :>> ', medicoId , clinicaId);
   const handleEditPatient = (patient) => {
     // Preencher o estado de edição com os dados do paciente selecionado
     setEditedPatient({
-      id:patient.id,
+      id: patient.id,
       nome: patient.nome,
       dataNascimento: patient.dataNascimento,
       email: patient.email,
       telefone: patient.telefone,
       riscoCardiaco: patient.riscoCardiaco,
-      observacaoDoMedico: patient.observacaoDoMedico || ''
+      observacaoDoMedico: patient.observacaoDoMedico || "",
     });
-    
+
     // Abrir o diálogo de edição
     setOpenPatientEditDialog(true);
   };
-  
+
   const handleSaveEditPatient = () => {
     // Atualizar o paciente com os dados editados
     atualizarPaciente(editedPatient.id, editedPatient);
-    
+
     // Fechar o diálogo
     setOpenPatientEditDialog(false);
   };
@@ -119,19 +126,22 @@ console.log('Promps :>> ', medicoId , clinicaId);
     adicionarPaciente(newPatient);
     setOpenAddPatientDialog(false);
     setNewPatient({
-      nome: '',
-      dataNascimento: '',
-      email: '',
-      telefone: '',
-      riscoCardiaco: ''
+      nome: "",
+      dataNascimento: "",
+      email: "",
+      telefone: "",
+      riscoCardiaco: "",
     });
   };
 
   const getRiskColor = (risk) => {
-    switch(risk) {
-      case 'Alto': return 'error';
-      case 'Moderado': return 'warning';
-      default: return 'success';
+    switch (risk) {
+      case "Alto":
+        return "error";
+      case "Moderado":
+        return "warning";
+      default:
+        return "success";
     }
   };
 
@@ -140,26 +150,113 @@ console.log('Promps :>> ', medicoId , clinicaId);
       <Grid container spacing={3}>
         {/* Cabeçalho do Painel */}
         <Grid item xs={12}>
-          <Box 
-            sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              backgroundColor: '#1976d2', 
-              color: 'white', 
-              p: 2, 
-              borderRadius: 2 
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              backgroundColor: "#1976d2",
+              color: "white",
+              p: 2,
+              borderRadius: 2,
             }}
           >
-            {clinica.logo ? <img className='rounded' style={{ backgroundColor:"#fff",width: "10rem", }} alt="logo" src={clinica.logo} />:<HospitalIcon sx={{ mr: 2, fontSize: 40 }} />}
+            {clinica ? (
+              clinica.logo ? (
+                <img
+                  className="rounded me-2"
+                  style={{
+                    backgroundColor: "#fff",
+                    width: "10rem",
+                  }}
+                  alt="logo"
+                  src={clinica.logo}
+                />
+              ) : (
+                <HospitalIcon sx={{ mr: 2, fontSize: 40 }} />
+              )
+            ) : (
+              <HospitalIcon sx={{ mr: 2, fontSize: 40 }} />
+            )}
             <Box>
               <Typography variant="h4">Painel Médico</Typography>
-              <Typography variant="subtitle1">{medico.nomeSocial} - {medico.especialidade}</Typography>
+              <Typography variant="subtitle1">
+                {medico.nomeSocial} - {medico.especialidade}
+              </Typography>
             </Box>
           </Box>
         </Grid>
 
         {/* Estatísticas Rápidas */}
         <Grid item xs={12} md={4}>
+          <Card sx={{ marginBottom: "1rem" }}>
+            <CardContent>
+              {clinica && medico ? (
+                <>
+                  <Typography variant="h6" gutterBottom>
+                    {clinica.nomeResumo}
+                  </Typography>
+                  {clinica.logo ? (
+                    <img
+                      className="rounded"
+                      style={{
+                        backgroundColor: "#fff",
+                        width: "10rem",
+                      }}
+                      alt="logo"
+                      src={clinica.logo}
+                    />
+                  ) : (
+                    <HospitalIcon sx={{ mr: 2, fontSize: 40 }} />
+                  )}
+                </>
+              ) : (
+                <>
+                  <Typography variant="h6" gutterBottom>
+                    Escolha de Médico
+                  </Typography>
+                  <FormControl sx={{ m: 1, width: "80%" }}>
+                    <InputLabel id="multiple-Medico-label">Medico</InputLabel>
+                    <Select
+                      labelId="multiple-Medico-label"
+                      id="multiple-Medico"
+                      value={medico}
+                      onChange={(e) => {
+                        const selected = e.target.value;
+                        setMedico(selected);
+                      }}
+                    >
+                      {medicos.map((medico) => (
+                        <MenuItem key={medico.id} value={medico}>
+                          {medico.nomeSocial}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <Typography variant="h6" gutterBottom>
+                    Escolha de Clinica
+                  </Typography>
+                  <FormControl sx={{ m: 1, width: "80%" }}>
+                    <InputLabel id="multiple-clinica-label">Clinica</InputLabel>
+                    <Select
+                      labelId="multiple-clinica-label"
+                      id="multiple-clinica"
+                      value={clinica}
+                      onChange={(e) => {
+                        const selected = e.target.value;
+                        setClinica(selected);
+                      }}
+                    >
+                      {clinicas.map((clinica) => (
+                        <MenuItem key={clinica.id} value={clinica}>
+                          {clinica.nomeResumo}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </>
+              )}
+            </CardContent>
+          </Card>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -171,19 +268,18 @@ console.log('Promps :>> ', medicoId , clinicaId);
                     <Typography variant="h4" color="primary">
                       {pacientes.length}
                     </Typography>
-                    <Typography variant="body2">
-                      Total Pacientes
-                    </Typography>
+                    <Typography variant="body2">Total Pacientes</Typography>
                   </Box>
                 </Grid>
                 <Grid item xs={6}>
                   <Box textAlign="center">
                     <Typography variant="h4" color="error">
-                      {pacientes.filter(p => p.riscoCardiaco === 'Alto').length}
+                      {
+                        pacientes.filter((p) => p.riscoCardiaco === "Alto")
+                          .length
+                      }
                     </Typography>
-                    <Typography variant="body2">
-                      Risco Alto
-                    </Typography>
+                    <Typography variant="body2">Risco Alto</Typography>
                   </Box>
                 </Grid>
               </Grid>
@@ -195,19 +291,17 @@ console.log('Promps :>> ', medicoId , clinicaId);
         <Grid item xs={12} md={8}>
           <Card>
             <CardContent>
-              <Box 
-                sx={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'center',
-                  mb: 2 
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 2,
                 }}
               >
-                <Typography variant="h6">
-                  Meus Pacientes
-                </Typography>
-                <IconButton 
-                  color="primary" 
+                <Typography variant="h6">Meus Pacientes</Typography>
+                <IconButton
+                  color="primary"
                   onClick={() => setOpenAddPatientDialog(true)}
                 >
                   <AddIcon />
@@ -228,34 +322,35 @@ console.log('Promps :>> ', medicoId , clinicaId);
                       <TableRow key={patient.id}>
                         <TableCell>{patient.nome}</TableCell>
                         <TableCell>
-                          {patient.dataNascimento 
-                            ? new Date().getFullYear() - new Date(patient.dataNascimento).getFullYear()
-                            : 'N/A'}
+                          {patient.dataNascimento
+                            ? new Date().getFullYear() -
+                              new Date(patient.dataNascimento).getFullYear()
+                            : "N/A"}
                         </TableCell>
                         <TableCell>
-                          <Chip 
-                            label={patient.riscoCardiaco || 'Não Avaliado'} 
+                          <Chip
+                            label={patient.riscoCardiaco || "Não Avaliado"}
                             color={getRiskColor(patient.riscoCardiaco)}
                             size="small"
                           />
                         </TableCell>
                         <TableCell>
                           <IconButton
-                            title='Visualizar' 
+                            title="Visualizar"
                             onClick={() => handleViewPatient(patient)}
                             color="primary"
                           >
                             <ViewIcon />
                           </IconButton>
                           <IconButton
-                            title='Editar' 
+                            title="Editar"
                             onClick={() => handleEditPatient(patient)}
                             color="success"
                           >
                             <EditIcon />
                           </IconButton>
-                          <IconButton 
-                          title='Excluir Paciente' 
+                          <IconButton
+                            title="Excluir Paciente"
                             onClick={() => handleDeletePatient(patient)}
                             color="error"
                           >
@@ -276,21 +371,24 @@ console.log('Promps :>> ', medicoId , clinicaId);
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                <WarningIcon color="error" sx={{ verticalAlign: 'middle', mr: 1 }} />
+                <WarningIcon
+                  color="error"
+                  sx={{ verticalAlign: "middle", mr: 1 }}
+                />
                 Alertas de Risco
               </Typography>
               {pacientes
-                .filter(p => p.riscoCardiaco === 'Alto')
-                .map(patient => (
-                  <Box 
-                    key={patient.id} 
-                    sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      backgroundColor: '#fff3e0', 
-                      p: 2, 
+                .filter((p) => p.riscoCardiaco === "Alto")
+                .map((patient) => (
+                  <Box
+                    key={patient.id}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      backgroundColor: "#fff3e0",
+                      p: 2,
                       borderRadius: 2,
-                      mb: 1 
+                      mb: 1,
                     }}
                   >
                     <HeartIcon color="error" sx={{ mr: 2 }} />
@@ -299,7 +397,7 @@ console.log('Promps :>> ', medicoId , clinicaId);
                         {patient.nome} - Risco Cardíaco Alto
                       </Typography>
                       <Typography variant="body2">
-                        Contato: {patient.telefone || 'Não cadastrado'}
+                        Contato: {patient.telefone || "Não cadastrado"}
                       </Typography>
                     </Box>
                   </Box>
@@ -310,8 +408,8 @@ console.log('Promps :>> ', medicoId , clinicaId);
       </Grid>
 
       {/* Dialog de Detalhes do Paciente */}
-      <Dialog 
-        open={openPatientDialog} 
+      <Dialog
+        open={openPatientDialog}
         onClose={() => setOpenPatientDialog(false)}
         maxWidth="xs"
         fullWidth
@@ -322,12 +420,14 @@ console.log('Promps :>> ', medicoId , clinicaId);
             <Box>
               <Typography>Nome: {selectedPatient.nome}</Typography>
               <Typography>
-                Idade: {new Date().getFullYear() - new Date(selectedPatient.dataNascimento).getFullYear()}
+                Idade:{" "}
+                {new Date().getFullYear() -
+                  new Date(selectedPatient.dataNascimento).getFullYear()}
               </Typography>
               <Typography>
-                Risco Cardíaco: 
-                <Chip 
-                  label={selectedPatient.riscoCardiaco || 'Não Avaliado'} 
+                Risco Cardíaco:
+                <Chip
+                  label={selectedPatient.riscoCardiaco || "Não Avaliado"}
                   color={getRiskColor(selectedPatient.riscoCardiaco)}
                   size="small"
                   sx={{ ml: 1 }}
@@ -335,9 +435,26 @@ console.log('Promps :>> ', medicoId , clinicaId);
               </Typography>
               <Typography>Email: {selectedPatient.email}</Typography>
               <Typography>Telefone: {selectedPatient.telefone}</Typography>
-              <Typography>Observações: {selectedPatient.observacaoDoMedico}</Typography>
-              <Typography>Medicametos: {selectedPatient.medicacoes ? selectedPatient.medicacoes.map(med => `${med.nome} (${med.dosagem})`).join(", "): "Nenhuma medicação informada"}</Typography>
-              <Typography>Id: {selectedPatient.id}</Typography>
+              <Typography>
+                Observações: {selectedPatient.observacaoDoMedico}
+              </Typography>
+              <Typography>
+                Medicametos:{" "}
+                {selectedPatient.medicacoes
+                  ? selectedPatient.medicacoes
+                      .map((med) => `${med.nome} (${med.dosagem})`)
+                      .join(", ")
+                  : "Nenhuma medicação informada"}
+              </Typography>
+              <Link
+                href={`http://192.168.0.99:3000/paciente/${selectedPatient.id}`}
+                target="_blank"
+              >
+                <QRCode
+                  title={`http://192.168.0.99:3000/paciente/${selectedPatient.id}`}
+                  value={`http://192.168.0.99:3000/paciente/${selectedPatient.id}`}
+                />
+              </Link>
             </Box>
           )}
         </DialogContent>
@@ -357,7 +474,9 @@ console.log('Promps :>> ', medicoId , clinicaId);
             label="Nome"
             fullWidth
             value={newPatient.nome}
-            onChange={(e) => setNewPatient({...newPatient, nome: e.target.value})}
+            onChange={(e) =>
+              setNewPatient({ ...newPatient, nome: e.target.value })
+            }
           />
           <TextField
             margin="dense"
@@ -366,7 +485,9 @@ console.log('Promps :>> ', medicoId , clinicaId);
             fullWidth
             InputLabelProps={{ shrink: true }}
             value={newPatient.dataNascimento}
-            onChange={(e) => setNewPatient({...newPatient, dataNascimento: e.target.value})}
+            onChange={(e) =>
+              setNewPatient({ ...newPatient, dataNascimento: e.target.value })
+            }
           />
           <TextField
             margin="dense"
@@ -374,7 +495,9 @@ console.log('Promps :>> ', medicoId , clinicaId);
             type="email"
             fullWidth
             value={newPatient.email}
-            onChange={(e) => setNewPatient({...newPatient, email: e.target.value})}
+            onChange={(e) =>
+              setNewPatient({ ...newPatient, email: e.target.value })
+            }
           />
           <TextField
             margin="dense"
@@ -382,25 +505,46 @@ console.log('Promps :>> ', medicoId , clinicaId);
             type="tel"
             fullWidth
             value={newPatient.telefone}
-            onChange={(e) => setNewPatient({...newPatient, telefone: e.target.value})}
+            onChange={(e) =>
+              setNewPatient({ ...newPatient, telefone: e.target.value })
+            }
           />
           <FormControl>
-            <FormLabel id='row-radio-risco'>Risco Cardiaco</FormLabel>
-            <RadioGroup 
-              row 
-              aria-labelledby='row-radio-risco'
-              id='row-radio-risco-grupo' 
+            <FormLabel id="row-radio-risco">Risco Cardiaco</FormLabel>
+            <RadioGroup
+              row
+              aria-labelledby="row-radio-risco"
+              id="row-radio-risco-grupo"
               defaultValue="Baixo"
-              onChange={(e) => setNewPatient({...newPatient, riscoCardiaco: e.target.value})}>
-                <FormControlLabel value="Baixo"  control={<Radio color='success'/> } label="Baixo" />
-                <FormControlLabel value="Moderado"  control={<Radio color='warning'/>} label="Moderado" />
-                <FormControlLabel value="Alto"  control={<Radio color='error'/>} label="Alto" />
+              onChange={(e) =>
+                setNewPatient({ ...newPatient, riscoCardiaco: e.target.value })
+              }
+            >
+              <FormControlLabel
+                value="Baixo"
+                control={<Radio color="success" />}
+                label="Baixo"
+              />
+              <FormControlLabel
+                value="Moderado"
+                control={<Radio color="warning" />}
+                label="Moderado"
+              />
+              <FormControlLabel
+                value="Alto"
+                control={<Radio color="error" />}
+                label="Alto"
+              />
             </RadioGroup>
           </FormControl>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenAddPatientDialog(false)}>Cancelar</Button>
-          <Button onClick={handleAddPatient} color="primary">Adicionar</Button>
+          <Button onClick={() => setOpenAddPatientDialog(false)}>
+            Cancelar
+          </Button>
+          <Button onClick={handleAddPatient} color="primary">
+            Adicionar
+          </Button>
         </DialogActions>
       </Dialog>
       {/* Dialog de Editar Paciente */}
@@ -418,7 +562,9 @@ console.log('Promps :>> ', medicoId , clinicaId);
             label="Nome"
             fullWidth
             value={editedPatient.nome}
-            onChange={(e) => setEditedPatient({...editedPatient, nome: e.target.value})}
+            onChange={(e) =>
+              setEditedPatient({ ...editedPatient, nome: e.target.value })
+            }
           />
           <TextField
             margin="dense"
@@ -427,7 +573,12 @@ console.log('Promps :>> ', medicoId , clinicaId);
             fullWidth
             InputLabelProps={{ shrink: true }}
             value={editedPatient.dataNascimento}
-            onChange={(e) => setEditedPatient({...editedPatient, dataNascimento: e.target.value})}
+            onChange={(e) =>
+              setEditedPatient({
+                ...editedPatient,
+                dataNascimento: e.target.value,
+              })
+            }
           />
           <TextField
             margin="dense"
@@ -435,7 +586,9 @@ console.log('Promps :>> ', medicoId , clinicaId);
             type="email"
             fullWidth
             value={editedPatient.email}
-            onChange={(e) => setEditedPatient({...editedPatient, email: e.target.value})}
+            onChange={(e) =>
+              setEditedPatient({ ...editedPatient, email: e.target.value })
+            }
           />
           <TextField
             margin="dense"
@@ -443,7 +596,9 @@ console.log('Promps :>> ', medicoId , clinicaId);
             type="tel"
             fullWidth
             value={editedPatient.telefone}
-            onChange={(e) => setEditedPatient({...editedPatient, telefone: e.target.value})}
+            onChange={(e) =>
+              setEditedPatient({ ...editedPatient, telefone: e.target.value })
+            }
           />
           <TextField
             margin="dense"
@@ -452,26 +607,52 @@ console.log('Promps :>> ', medicoId , clinicaId);
             rows={4}
             fullWidth
             value={editedPatient.observacaoDoMedico}
-            onChange={(e) => setEditedPatient({...editedPatient, observacaoDoMedico: e.target.value})}
+            onChange={(e) =>
+              setEditedPatient({
+                ...editedPatient,
+                observacaoDoMedico: e.target.value,
+              })
+            }
           />
           <FormControl>
-            <FormLabel id='row-radio-risco'>Risco Cardíaco</FormLabel>
-            <RadioGroup 
-              row 
-              aria-labelledby='row-radio-risco'
-              id='row-radio-risco-grupo' 
+            <FormLabel id="row-radio-risco">Risco Cardíaco</FormLabel>
+            <RadioGroup
+              row
+              aria-labelledby="row-radio-risco"
+              id="row-radio-risco-grupo"
               value={editedPatient.riscoCardiaco}
-              onChange={(e) => setEditedPatient({...editedPatient, riscoCardiaco: e.target.value})}
+              onChange={(e) =>
+                setEditedPatient({
+                  ...editedPatient,
+                  riscoCardiaco: e.target.value,
+                })
+              }
             >
-              <FormControlLabel value="Baixo" control={<Radio color='success'/> } label="Baixo" />
-              <FormControlLabel value="Moderado" control={<Radio color='warning'/>} label="Moderado" />
-              <FormControlLabel value="Alto" control={<Radio color='error'/>} label="Alto" />
+              <FormControlLabel
+                value="Baixo"
+                control={<Radio color="success" />}
+                label="Baixo"
+              />
+              <FormControlLabel
+                value="Moderado"
+                control={<Radio color="warning" />}
+                label="Moderado"
+              />
+              <FormControlLabel
+                value="Alto"
+                control={<Radio color="error" />}
+                label="Alto"
+              />
             </RadioGroup>
           </FormControl>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenPatientEditDialog(false)}>Cancelar</Button>
-          <Button onClick={handleSaveEditPatient} color="primary">Salvar</Button>
+          <Button onClick={() => setOpenPatientEditDialog(false)}>
+            Cancelar
+          </Button>
+          <Button onClick={handleSaveEditPatient} color="primary">
+            Salvar
+          </Button>
         </DialogActions>
       </Dialog>
     </Container>

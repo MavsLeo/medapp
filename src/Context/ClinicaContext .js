@@ -78,28 +78,32 @@ export const ClinicaProvider = ({ children }) => {
   });
 
   const [clinicas, setClinicas] = useState(() => {
-    // Recuperar dados do localStorage na inicialização
     const savedClinicas = localStorage.getItem('Clinicas');
-    return savedClinicas 
-      ? JSON.parse(savedClinicas) 
-      : [
-        {
-          id: uuidv4(),
-          nome: 'Hospital do Coração e Clinicas de Nova Iguaçu EMCOR',
-          nomeResumo: 'Hospital EMCOR',
-          logo:"https://hospitalemcor.com.br/novo/wp-content/uploads/2024/02/emcorsfundo.png",
-          cnpj: ' 32074452000104',
-          email: 'atendimento@hospitalemcor.com.br',
-          telefone: '2137598100',
-          Endereço: 'Rua Nelson Ramos',
-          numero: '733',
-          uf:'RJ',
-          cidade: 'Nova Iguaçu',
-          bairro: 'Centro',
-          CEP: "26210140"
-        }
-      ];
-  });
+    
+    if (savedClinicas) {
+        // Se existem dados salvos, parse e retorne
+        return JSON.parse(savedClinicas);
+    } else {
+        // Se não existem dados salvos, crie o array inicial com um novo ID
+        return [
+            {
+                id: uuidv4(), // Gera um ID apenas na criação inicial
+                nome: 'Hospital do Coração e Clinicas de Nova Iguaçu EMCOR',
+                nomeResumo: 'Hospital EMCOR',
+                logo: "https://hospitalemcor.com.br/novo/wp-content/uploads/2024/02/emcorsfundo.png",
+                cnpj: ' 32074452000104',
+                email: 'atendimento@hospitalemcor.com.br',
+                telefone: '2137598100',
+                Endereço: 'Rua Nelson Ramos',
+                numero: '733',
+                uf: 'RJ',
+                cidade: 'Nova Iguaçu',
+                bairro: 'Centro',
+                CEP: "26210140"
+            }
+        ];
+    }
+});
 
   // Salvar no localStorage sempre que pacientes ou consultas mudarem
   useEffect(() => {
