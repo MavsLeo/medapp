@@ -42,7 +42,6 @@ import {
   Edit as EditIcon,
 } from "@mui/icons-material";
 import { useClinica } from "../../Context/ClinicaContextFb";
-import { QRCodeCanvas } from "qrcode.react";
 import QRCode from "react-qr-code";
 
 // Importar o contexto da clínica
@@ -68,6 +67,14 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
   const [openPatientDialog, setOpenPatientDialog] = useState(false);
   const [openPatientEditDialog, setOpenPatientEditDialog] = useState(false);
   const [openAddPatientDialog, setOpenAddPatientDialog] = useState(false);
+  const [newMedicamento, setNewMedicamento] = useState({
+    nome: "",
+    dosagem: "",
+  });
+  const [editedMedicamento, setEditedMedicamento] = useState({
+    nome: "",
+    dosagem: "",
+  });
   const [medico, setMedico] = useState("");
   const [clinica, setClinica] = useState("");
 
@@ -79,6 +86,7 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
     dataNascimento: "",
     email: "",
     telefone: "",
+    medicacoes: [], // Array para medicamentos
     riscoCardiaco: "",
   });
   const [editedPatient, setEditedPatient] = useState({
@@ -87,6 +95,7 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
     email: "",
     telefone: "",
     riscoCardiaco: "",
+    medicacoes: [], // Array para medicamentos
     observacaoDoMedico: "",
   });
   const handleDeletePatient = (patient) => {
@@ -98,6 +107,34 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
     setOpenPatientDialog(true);
   };
 
+  const handleAddMedicacao = (medicamento) => {
+    setNewPatient((prev) => ({
+      ...prev,
+      medicacoes: [...prev.medicacoes, medicamento], // Adiciona o novo medicamento
+    }));
+  };
+
+  const handleRemoveMedicacao = (index) => {
+    setNewPatient((prev) => ({
+      ...prev,
+      medicacoes: prev.medicacoes.filter((_, i) => i !== index), // Remove pelo índice
+    }));
+  };
+
+  const handleAddMedicacaoEdited = (medicamento) => {
+    setEditedPatient((prev) => ({
+      ...prev,
+      medicacoes: [...prev.medicacoes, medicamento], // Adiciona o medicamento ao array
+    }));
+  };
+
+  const handleRemoveMedicacaoEdited = (index) => {
+    setEditedPatient((prev) => ({
+      ...prev,
+      medicacoes: prev.medicacoes.filter((_, i) => i !== index), // Remove pelo índice
+    }));
+  };
+
   const handleEditPatient = (patient) => {
     // Preencher o estado de edição com os dados do paciente selecionado
     setEditedPatient({
@@ -107,6 +144,7 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
       email: patient.email,
       telefone: patient.telefone,
       riscoCardiaco: patient.riscoCardiaco,
+      medicacoes: patient.medicacoes || [], // Garante que seja um array
       observacaoDoMedico: patient.observacaoDoMedico || "",
     });
 
@@ -130,6 +168,7 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
       dataNascimento: "",
       email: "",
       telefone: "",
+      medicacoes: [], // Reseta os medicamentos
       riscoCardiaco: "",
     });
   };
@@ -509,6 +548,61 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
               setNewPatient({ ...newPatient, telefone: e.target.value })
             }
           />
+          {/* Medicamentos */}
+          <Typography variant="h6" sx={{ mt: 2 }}>
+            Medicamentos de Uso Contínuo
+          </Typography>
+          {newPatient.medicacoes.map((med, index) => (
+            <Box
+              key={index}
+              sx={{ display: "flex", alignItems: "center", mb: 1 }}
+            >
+              <Typography variant="body2" sx={{ flexGrow: 1 }}>
+                {med.nome} ({med.dosagem})
+              </Typography>
+              <Button
+                variant="outlined"
+                color="error"
+                size="small"
+                onClick={() => handleRemoveMedicacao(index)}
+              >
+                Remover
+              </Button>
+            </Box>
+          ))}
+          <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+            <TextField
+              label="Medicamento"
+              fullWidth
+              value={newMedicamento.nome || ""}
+              onChange={(e) =>
+                setNewMedicamento((prev) => ({ ...prev, nome: e.target.value }))
+              }
+            />
+            <TextField
+              label="Dosagem"
+              fullWidth
+              value={newMedicamento.dosagem || ""}
+              onChange={(e) =>
+                setNewMedicamento((prev) => ({
+                  ...prev,
+                  dosagem: e.target.value,
+                }))
+              }
+            />
+            <Button
+              variant="contained"
+              onClick={() => {
+                if (newMedicamento.nome && newMedicamento.dosagem) {
+                  handleAddMedicacao(newMedicamento);
+                  setNewMedicamento({ nome: "", dosagem: "" }); // Limpa os campos
+                }
+              }}
+            >
+              <AddIcon />
+            </Button>
+          </Box>
+          {/*Risco Cardiaco*/}
           <FormControl>
             <FormLabel id="row-radio-risco">Risco Cardiaco</FormLabel>
             <RadioGroup
@@ -614,37 +708,98 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
               })
             }
           />
-          <FormControl>
-            <FormLabel id="row-radio-risco">Risco Cardíaco</FormLabel>
-            <RadioGroup
-              row
-              aria-labelledby="row-radio-risco"
-              id="row-radio-risco-grupo"
-              value={editedPatient.riscoCardiaco}
-              onChange={(e) =>
-                setEditedPatient({
-                  ...editedPatient,
-                  riscoCardiaco: e.target.value,
-                })
-              }
+
+          {/* Medicamentos */}
+          <Typography variant="h6" sx={{ mt: 2 }}>
+            Medicamentos de Uso Contínuo
+          </Typography>
+          {editedPatient.medicacoes.map((med, index) => (
+            <Box
+              key={index}
+              sx={{ display: "flex", alignItems: "center", mb: 1 }}
             >
-              <FormControlLabel
-                value="Baixo"
-                control={<Radio color="success" />}
-                label="Baixo"
-              />
-              <FormControlLabel
-                value="Moderado"
-                control={<Radio color="warning" />}
-                label="Moderado"
-              />
-              <FormControlLabel
-                value="Alto"
-                control={<Radio color="error" />}
-                label="Alto"
-              />
-            </RadioGroup>
-          </FormControl>
+              <Typography variant="body2" sx={{ flexGrow: 1 }}>
+                {med.nome} ({med.dosagem})
+              </Typography>
+              <Button
+                variant="outlined"
+                color="error"
+                size="small"
+                onClick={() => handleRemoveMedicacaoEdited(index)}
+              >
+                Remover
+              </Button>
+            </Box>
+          ))}
+          <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+            <TextField
+              label="Medicamento"
+              fullWidth
+              value={editedMedicamento.nome || ""}
+              onChange={(e) =>
+                setEditedMedicamento((prev) => ({
+                  ...prev,
+                  nome: e.target.value,
+                }))
+              }
+            />
+            <TextField
+              label="Dosagem"
+              fullWidth
+              value={editedMedicamento.dosagem || ""}
+              onChange={(e) =>
+                setEditedMedicamento((prev) => ({
+                  ...prev,
+                  dosagem: e.target.value,
+                }))
+              }
+            />
+            <Button
+              variant="contained"
+              onClick={() => {
+                if (editedMedicamento.nome && editedMedicamento.dosagem) {
+                  handleAddMedicacaoEdited(editedMedicamento);
+                  setEditedMedicamento({ nome: "", dosagem: "" }); // Limpa os campos
+                }
+              }}
+            >
+              <AddIcon />
+            </Button>
+          </Box>
+          <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+            <FormControl>
+              <Typography variant="body2" sx={{ flexGrow: 1 }}>
+                Risco Cardíaco
+              </Typography>
+              <RadioGroup
+                row
+                id="row-radio-risco-grupo"
+                value={editedPatient.riscoCardiaco}
+                onChange={(e) =>
+                  setEditedPatient({
+                    ...editedPatient,
+                    riscoCardiaco: e.target.value,
+                  })
+                }
+              >
+                <FormControlLabel
+                  value="Baixo"
+                  control={<Radio color="success" />}
+                  label="Baixo"
+                />
+                <FormControlLabel
+                  value="Moderado"
+                  control={<Radio color="warning" />}
+                  label="Moderado"
+                />
+                <FormControlLabel
+                  value="Alto"
+                  control={<Radio color="error" />}
+                  label="Alto"
+                />
+              </RadioGroup>
+            </FormControl>
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenPatientEditDialog(false)}>
