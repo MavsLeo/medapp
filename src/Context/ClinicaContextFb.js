@@ -7,7 +7,9 @@ import {
   updateDoc,
   deleteDoc,
   getDoc,
+  arrayUnion,
 } from "firebase/firestore";
+import { supabase } from "./supabaseClient";
 import { db } from "./firebaseConfig"; // Certifique-se de apontar para a configuração correta
 
 const ClinicaContext = createContext();
@@ -45,6 +47,74 @@ export const ClinicaProvider = ({ children }) => {
       setPacientes((prev) => [...prev, { id: docRef.id, ...novoPaciente }]);
     } catch (error) {
       console.error("Erro ao adicionar paciente:", error);
+    }
+  };
+
+  const uploadExame = async (pacienteId, arquivo) => {
+    try {
+      // Faz o upload do arquivo para o Supabase
+      const { data, error } = await supabase.storage
+        .from("exames")
+        .upload(`${pacienteId}/${arquivo.name}`, arquivo);
+
+      if (error) throw error;
+
+      // Obter a URL pública do arquivo
+      const { publicUrl } = supabase.storage
+        .from("exames")
+        .getPublicUrl(`${pacienteId}/${arquivo.name}`);
+
+      // Referência ao documento do paciente no Firestore
+      const pacienteRef = doc(db, "pacientes", pacienteId);
+
+      // Verifique se o campo "exames" existe no documento
+      const pacienteSnap = await getDoc(pacienteRef);
+
+      if (pacienteSnap.exists()) {
+        const pacienteData = pacienteSnap.data();
+
+        // Se o campo "exames" não existir, inicialize como um array vazio
+        if (!pacienteData.exames) {
+          await updateDoc(pacienteRef, { exames: [] });
+        }
+      } else {
+        throw new Error("Documento do paciente não encontrado.");
+      }
+
+      // Atualizar o documento com o novo exame
+      await updateDoc(pacienteRef, {
+        exames: arrayUnion({
+          nome: arquivo.name, // Nome do arquivo
+          url: publicUrl, // URL do arquivo no Supabase
+          dataUpload: new Date().toISOString(), // Data e hora do envio
+        }),
+      });
+
+      return { publicUrl, caminho: data.path }; // Retorna a URL e o caminho do arquivo
+    } catch (error) {
+      console.error("Erro ao enviar arquivo ou salvar no Firestore:", error);
+      throw error;
+    }
+  };
+
+  // Função para listar exames
+  const listarExames = async (pacienteId) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from("exames")
+        .list(`${pacienteId}`);
+
+      if (error) throw error;
+
+      return data.map((file) => ({
+        nome: file.name,
+        url: supabase.storage
+          .from("exames")
+          .getPublicUrl(`${pacienteId}/${file.name}`).publicUrl,
+      }));
+    } catch (error) {
+      console.error("Erro ao listar arquivos:", error);
+      throw error;
     }
   };
 
@@ -199,6 +269,8 @@ export const ClinicaProvider = ({ children }) => {
         buscarPacientePorId,
         buscarMedicoPorId,
         buscarClinicaPorId,
+        uploadExame, // Adicionado
+        listarExames, // Adicionado
       }}
     >
       {children}

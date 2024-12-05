@@ -31,6 +31,10 @@ import {
   Select,
   InputLabel,
   Link,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
 import {
   LocalHospital as HospitalIcon,
@@ -40,6 +44,8 @@ import {
   Add as AddIcon,
   Delete as DelIcon,
   Edit as EditIcon,
+  Report as ReportIcon,
+  FilePresent as AnexarIcon,
 } from "@mui/icons-material";
 import { useClinica } from "../../Context/ClinicaContextFb";
 import QRCode from "react-qr-code";
@@ -56,6 +62,8 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
     adicionarPaciente,
     atualizarPaciente,
     removerPaciente,
+    listarExames,
+    uploadExame,
     // buscarClinicaPorId,
   } = useClinica();
 
@@ -67,6 +75,9 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
   const [openPatientDialog, setOpenPatientDialog] = useState(false);
   const [openPatientEditDialog, setOpenPatientEditDialog] = useState(false);
   const [openAddPatientDialog, setOpenAddPatientDialog] = useState(false);
+  const [openUploadExameDialog, setOpenUploadExameDialog] = useState(false); // Controla a exibição do diálogo
+  const [selectedFile, setSelectedFile] = useState(null); // Armazena o arquivo selecionado
+  const [exames, setExames] = useState([]); // Lista de exames existentes para o paciente
   const [newMedicamento, setNewMedicamento] = useState({
     nome: "",
     dosagem: "",
@@ -387,6 +398,18 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
                             color="success"
                           >
                             <EditIcon />
+                          </IconButton>
+                          <IconButton
+                            title="Anexar"
+                            onClick={() => {
+                              setOpenUploadExameDialog(true);
+                              listarExames(editedPatient.id)
+                                .then(setExames)
+                                .catch(console.error); // Atualiza a lista ao abrir
+                            }}
+                            color="secondary"
+                          >
+                            <AnexarIcon />
                           </IconButton>
                           <IconButton
                             title="Excluir Paciente"
@@ -807,6 +830,78 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
           </Button>
           <Button onClick={handleSaveEditPatient} color="primary">
             Salvar
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/*Dialog Para adcionar exames*/}
+      <Dialog
+        open={openUploadExameDialog}
+        onClose={() => setOpenUploadExameDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Enviar Exames</DialogTitle>
+        <DialogContent>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Selecione um arquivo PDF para associar ao paciente
+          </Typography>
+          <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+            <input
+              type="file"
+              accept="application/pdf"
+              onChange={(e) => setSelectedFile(e.target.files[0])}
+            />
+            <Button
+              variant="contained"
+              disabled={!selectedFile}
+              onClick={async () => {
+                try {
+                  if (selectedFile) {
+                    await uploadExame(editedPatient.id, selectedFile); // Envia o arquivo
+                    const arquivosAtualizados = await listarExames(
+                      editedPatient.id
+                    ); // Atualiza a lista de exames
+                    setExames(arquivosAtualizados);
+                    alert("Exame enviado com sucesso!");
+                    setSelectedFile(null); // Limpa o estado do arquivo
+                  }
+                } catch (error) {
+                  alert("Erro ao enviar o exame.");
+                }
+              }}
+            >
+              Enviar
+            </Button>
+          </Box>
+
+          <Typography variant="h6" sx={{ mt: 2, mb: 2 }}>
+            Exames Enviados
+          </Typography>
+          {exames.length > 0 ? (
+            <List>
+              {exames.map((exame, index) => (
+                <ListItem key={index}>
+                  <ListItemIcon>
+                    <ReportIcon />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={exame.nome}
+                    secondary={
+                      <Link href={exame.url} target="_blank" rel="noopener">
+                        Visualizar
+                      </Link>
+                    }
+                  />
+                </ListItem>
+              ))}
+            </List>
+          ) : (
+            <Typography variant="body2">Nenhum exame enviado ainda.</Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenUploadExameDialog(false)}>
+            Fechar
           </Button>
         </DialogActions>
       </Dialog>
