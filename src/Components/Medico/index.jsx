@@ -162,6 +162,23 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
     // Abrir o diálogo de edição
     setOpenPatientEditDialog(true);
   };
+  const handleEditExames = (patient) => {
+    // Preencher o estado de edição com os dados do paciente selecionado
+    setEditedPatient({
+      id: patient.id,
+      nome: patient.nome,
+      dataNascimento: patient.dataNascimento,
+      email: patient.email,
+      telefone: patient.telefone,
+      riscoCardiaco: patient.riscoCardiaco,
+      medicacoes: patient.medicacoes || [], // Garante que seja um array
+      observacaoDoMedico: patient.observacaoDoMedico || "",
+    });
+
+    // Abrir o diálogo de edição
+    setOpenUploadExameDialog(true);
+    listarExames(editedPatient.id).then(setExames).catch(console.error); // Atualiza a lista ao abrir
+  };
 
   const handleSaveEditPatient = () => {
     // Atualizar o paciente com os dados editados
@@ -401,12 +418,7 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
                           </IconButton>
                           <IconButton
                             title="Anexar"
-                            onClick={() => {
-                              setOpenUploadExameDialog(true);
-                              listarExames(editedPatient.id)
-                                .then(setExames)
-                                .catch(console.error); // Atualiza a lista ao abrir
-                            }}
+                            onClick={() => handleEditExames(patient)}
                             color="secondary"
                           >
                             <AnexarIcon />
