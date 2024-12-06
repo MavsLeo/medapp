@@ -78,6 +78,7 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
   const [openUploadExameDialog, setOpenUploadExameDialog] = useState(false); // Controla a exibição do diálogo
   const [selectedFile, setSelectedFile] = useState(null); // Armazena o arquivo selecionado
   const [exames, setExames] = useState([]); // Lista de exames existentes para o paciente
+  console.log("exames :>> ", exames);
   const [newMedicamento, setNewMedicamento] = useState({
     nome: "",
     dosagem: "",
@@ -177,6 +178,7 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
 
     // Abrir o diálogo de edição
     setOpenUploadExameDialog(true);
+    console.log("editedPatient.id :>> ", editedPatient.id);
     listarExames(editedPatient.id).then(setExames).catch(console.error); // Atualiza a lista ao abrir
   };
 
@@ -874,6 +876,10 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
                       editedPatient.id
                     ); // Atualiza a lista de exames
                     setExames(arquivosAtualizados);
+                    console.log(
+                      "arquivosAtualizados :>> ",
+                      arquivosAtualizados
+                    );
                     alert("Exame enviado com sucesso!");
                     setSelectedFile(null); // Limpa o estado do arquivo
                   }
