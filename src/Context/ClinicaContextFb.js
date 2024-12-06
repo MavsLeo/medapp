@@ -10,7 +10,7 @@ import {
   arrayUnion,
 } from "firebase/firestore";
 import { supabase } from "./supabaseClient";
-import { db } from "./firebaseConfig"; // Certifique-se de apontar para a configuração correta
+import { auth, db } from "./firebaseConfig"; // Certifique-se de apontar para a configuração correta
 
 const ClinicaContext = createContext();
 
@@ -18,6 +18,30 @@ export const ClinicaProvider = ({ children }) => {
   const [pacientes, setPacientes] = useState([]);
   const [medicos, setMedicos] = useState([]);
   const [clinicas, setClinicas] = useState([]);
+  const [authUser, setAuthUser] = useState(null);
+  const [isAuthed, setIsAuthed] = useState(false);
+
+  //Função do Autenticador
+
+  const useAuth = () => {
+    try {
+      const unsubscribe = auth.onAuthStateChanged(auth, (user) => {
+        if (user) {
+          setAuthUser(user);
+          setIsAuthed(true);
+        } else {
+          setAuthUser(null);
+          setIsAuthed(false);
+        }
+      });
+
+      // Retorna função de unsubscribe para limpar listener quando necessário
+      return () => unsubscribe();
+    } catch (error) {
+      console.error("Erro na autenticação:", error);
+      setIsAuthed(false);
+    }
+  };
 
   // Função para carregar dados de uma coleção
   const carregarDados = async (colecao, setState) => {
@@ -125,7 +149,6 @@ export const ClinicaProvider = ({ children }) => {
       throw error;
     }
   };
-  
 
   const atualizarPaciente = async (id, dadosAtualizados) => {
     try {
@@ -263,6 +286,7 @@ export const ClinicaProvider = ({ children }) => {
   return (
     <ClinicaContext.Provider
       value={{
+        useAuth,
         pacientes,
         medicos,
         clinicas,
@@ -280,6 +304,8 @@ export const ClinicaProvider = ({ children }) => {
         buscarClinicaPorId,
         uploadExame, // Adicionado
         listarExames, // Adicionado
+        authUser,
+        isAuthed,
       }}
     >
       {children}
@@ -289,15 +315,3 @@ export const ClinicaProvider = ({ children }) => {
 
 // Hook personalizado para usar o contexto
 export const useClinica = () => useContext(ClinicaContext);
-
-// // Configuração do Firebase (substitua com suas credenciais)
-// const firebaseConfig = {
-//   apiKey: "AIzaSyBru30cnhERZUj0FByaU6FjT0aOTav9pLk",
-//   authDomain: "medapp-4cca2.firebaseapp.com",
-//   projectId: "medapp-4cca2",
-//   storageBucket: "medapp-4cca2.firebasestorage.app",
-//   messagingSenderId: "846443970623",
-//   appId: "1:846443970623:web:70ed4a1a5cee9fd3ba788a",
-//   measurementId: "G-YSEHKGL1TW",
-//   // ... outros detalhes de configuração
-// };

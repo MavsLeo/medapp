@@ -64,12 +64,14 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
     removerPaciente,
     listarExames,
     uploadExame,
+    isAuthed,
     // buscarClinicaPorId,
   } = useClinica();
 
   console.log("pacientes :>> ", pacientes);
   console.log("medicos :>> ", medicos);
   console.log("clinicas :>> ", clinicas);
+  console.log("isAuthed :>> ", isAuthed);
 
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [openPatientDialog, setOpenPatientDialog] = useState(false);
