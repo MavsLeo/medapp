@@ -643,7 +643,7 @@ const MedicDashboard = () => {
                 }}
               >
                 <QRCode
-                  value={`http://192.168.0.99:3000/paciente/${selectedPatient.id}`}
+                  value={`http://medappemcor.vercel.app/paciente/${selectedPatient.id}`}
                   size={150}
                 />
               </Box>
