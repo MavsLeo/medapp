@@ -8,6 +8,8 @@ import {
   deleteDoc,
   getDoc,
   arrayUnion,
+  query,
+  where,
 } from "firebase/firestore";
 import { supabase } from "./supabaseClient";
 import { db } from "./firebaseConfig"; // Certifique-se de apontar para a configuração correta
@@ -18,6 +20,7 @@ export const ClinicaProvider = ({ children }) => {
   const [pacientes, setPacientes] = useState([]);
   const [medicos, setMedicos] = useState([]);
   const [clinicas, setClinicas] = useState([]);
+  const [consultas, setConsultas] = useState([]);
 
   // Função para carregar dados de uma coleção
   const carregarDados = async (colecao, setState) => {
@@ -38,6 +41,7 @@ export const ClinicaProvider = ({ children }) => {
     carregarDados("pacientes", setPacientes);
     carregarDados("medicos", setMedicos);
     carregarDados("clinicas", setClinicas);
+    carregarDados("consultas", setConsultas);
   }, []);
 
   // Funções CRUD
@@ -258,27 +262,106 @@ export const ClinicaProvider = ({ children }) => {
       return null;
     }
   };
+  // Consultas
+  const adicionarConsulta = async (novaConsulta) => {
+    try {
+      const docRef = await addDoc(collection(db, "consultas"), novaConsulta);
+      setConsultas((prev) => [...prev, { id: docRef.id, ...novaConsulta }]);
+    } catch (error) {
+      console.error("Erro ao adicionar consulta:", error);
+    }
+  };
+
+  const atualizarConsulta = async (id, dadosAtualizados) => {
+    try {
+      await updateDoc(doc(db, "consultas", id), dadosAtualizados);
+      setConsultas((prev) =>
+        prev.map((consulta) =>
+          consulta.id === id ? { ...consulta, ...dadosAtualizados } : consulta
+        )
+      );
+    } catch (error) {
+      console.error("Erro ao atualizar consulta:", error);
+    }
+  };
+
+  const removerConsulta = async (id) => {
+    try {
+      await deleteDoc(doc(db, "consultas", id));
+      setConsultas((prev) => prev.filter((consulta) => consulta.id !== id));
+    } catch (error) {
+      console.error("Erro ao remover consulta:", error);
+    }
+  };
+
+  const buscarConsultaPorId = async (id) => {
+    try {
+      const docRef = doc(db, "consultas", id);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() };
+      } else {
+        console.error("Consulta não encontrada!");
+        return null;
+      }
+    } catch (error) {
+      console.error("Erro ao buscar consulta:", error);
+      return null;
+    }
+  };
+
+  const buscarConsultasPorPaciente = async (pacienteId) => {
+    try {
+      const q = query(
+        collection(db, "consultas"),
+        where("pacienteId", "==", pacienteId)
+      );
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+      console.error("Erro ao buscar consultas do paciente:", error);
+      return [];
+    }
+  };
 
   return (
     <ClinicaContext.Provider
       value={{
+        // Estados
         pacientes,
         medicos,
         clinicas,
+        consultas,
+
+        // Funções de Pacientes
         adicionarPaciente,
         atualizarPaciente,
         removerPaciente,
+        buscarPacientePorId,
+
+        // Funções de Médicos
         adicionarMedico,
         atualizarMedico,
         removerMedico,
+        buscarMedicoPorId,
+
+        // Funções de Clínicas
         adicionarClinica,
         atualizarClinica,
         removerClinica,
-        buscarPacientePorId,
-        buscarMedicoPorId,
         buscarClinicaPorId,
+
+        // Funções de Consultas
+        adicionarConsulta,
+        atualizarConsulta,
+        removerConsulta,
+        buscarConsultaPorId,
+        buscarConsultasPorPaciente,
+        // Funções de Exames
         uploadExame, // Adicionado
         listarExames, // Adicionado
+        // Setters diretos (caso precise)
+        setConsultas,
       }}
     >
       {children}

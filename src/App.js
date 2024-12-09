@@ -9,10 +9,15 @@ import PatientPublicProfile from "./Components/Paciente/Profile";
 import MedicDashboard from "./Components/Medico";
 import Login from "./Components/Login";
 import { useAuth } from "./Context/authUser";
+import ConsultasPage from "./Components/Consultas";
 
 function AppRoutes() {
-  // eslint-disable-next-line
-  const { isAuthed } = useAuth();
+  const { isAuthed, loading } = useAuth();
+
+  if (loading) {
+    return <div>Carregando...</div>; // Exibe um placeholder enquanto verifica autenticação
+  }
+
   return (
     <Routes>
       <Route
@@ -23,12 +28,15 @@ function AppRoutes() {
         path="/dashboard"
         element={isAuthed ? <MedicDashboard /> : <Navigate to="/login" />}
       />
-      {/* Outras rotas */}
       <Route
-        path="/"
-        element={isAuthed ? <MedicDashboard /> : <Navigate to="/login" />}
+        path="/consulta"
+        element={isAuthed ? <ConsultasPage /> : <Navigate to="/login" />}
       />
       <Route path="/paciente/:id" element={<PatientPublicProfile />} />
+      <Route
+        path="/"
+        element={<Navigate to={isAuthed ? "/dashboard" : "/login"} />}
+      />
     </Routes>
   );
 }
