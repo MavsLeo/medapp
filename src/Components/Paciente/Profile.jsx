@@ -107,15 +107,6 @@ const PatientPublicProfile = () => {
             padding: 2,
           }}
         >
-          <Avatar
-            sx={{
-              width: 100,
-              height: 100,
-              margin: "0 auto 16px",
-              border: "4px solid white",
-            }}
-            src="https://st3.depositphotos.com/10168920/13600/i/450/depositphotos_136001788-stock-photo-a-white-man-with-a.jpg" // Substituir com foto real do paciente
-          />
           <Typography variant="h5">{paciente.nome}</Typography>
           <Typography variant="subtitle1">
             Idade:{" "}
