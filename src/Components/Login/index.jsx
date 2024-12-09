@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import {
+  // eslint-disable-next-line
   Avatar,
   Button,
   CssBaseline,
@@ -12,12 +13,13 @@ import {
   ThemeProvider,
   Snackbar,
   Alert,
-} from "@mui/material";
+} from "@mui/material"; // eslint-disable-next-line
 import { LockOutlined as LockOutlinedIcon } from "@mui/icons-material";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "../../Context/firebaseConfig";
+import { auth } from "../../Context/firebaseConfig";
 import ambul from "../../Images/ambulatorioEMCOR.jpg";
 import { useNavigate } from "react-router-dom";
+import logo from "../../Images/logo512.png";
 
 // Medical clinic theme
 const theme = createTheme({
@@ -97,9 +99,10 @@ export default function MedicalClinicLogin() {
               alignItems: "center",
             }}
           >
-            <Avatar sx={{ m: 1, bgcolor: "primary.main" }}>
-              <LockOutlinedIcon />
-            </Avatar>
+            {/* <Avatar sx={{ m: 1, bgcolor: "primary.main" }}> */}
+            {/* <LockOutlinedIcon /> */}
+            <img className="rounded-circle w-25" src={logo} alt="" srcset="" />
+            {/* </Avatar> */}
             <Typography component="h1" variant="h5">
               Login Da Clinica
             </Typography>

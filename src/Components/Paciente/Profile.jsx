@@ -11,6 +11,7 @@ import {
   ListItemText,
   Container,
   Paper,
+  Link,
 } from "@mui/material";
 import {
   Favorite as HeartIcon,
@@ -18,6 +19,7 @@ import {
   Assignment as ReportIcon,
   Person as PersonIcon,
   LocalHospital as HospitalIcon,
+  Plagiarism as PlagiarismIcon,
 } from "@mui/icons-material";
 import { useParams } from "react-router-dom";
 import { useClinica } from "../../Context/ClinicaContextFb";
@@ -178,7 +180,51 @@ const PatientPublicProfile = () => {
               </ListItemIcon>
               <ListItemText
                 primary="Observações do Médico"
-                secondary={paciente.observacoesDoMedico}
+                secondary={
+                  <Box
+                    sx={{
+                      maxHeight: "10rem", // Limita a altura
+                      overflow: "auto", // Adiciona barra de rolagem se necessário
+                      whiteSpace: "pre-wrap", // Quebra linhas automaticamente
+                    }}
+                  >
+                    {paciente.observacaoDoMedico}
+                  </Box>
+                }
+              />
+            </ListItem>
+
+            <Divider variant="inset" component="li" />
+            <ListItem>
+              <ListItemIcon>
+                <PlagiarismIcon color={getRiskColor(paciente.riscoCardiaco)} />
+              </ListItemIcon>
+              <ListItemText
+                primary="Exames"
+                secondary={
+                  paciente.exames && paciente.exames.length > 0 ? (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "1rem",
+                      }}
+                    >
+                      {paciente.exames.map((exame, index) => (
+                        <Link
+                          key={index}
+                          href={exame.url}
+                          target="_blank"
+                          rel="noopener"
+                        >
+                          {exame.nome}
+                        </Link>
+                      ))}
+                    </Box>
+                  ) : (
+                    "Nenhum Exame informado"
+                  )
+                }
               />
             </ListItem>
           </List>

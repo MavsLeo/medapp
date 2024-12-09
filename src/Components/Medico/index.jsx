@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
   Typography,
@@ -27,9 +27,6 @@ import {
   RadioGroup,
   FormControlLabel,
   Radio,
-  MenuItem,
-  Select,
-  InputLabel,
   Link,
   List,
   ListItem,
@@ -49,29 +46,29 @@ import {
 } from "@mui/icons-material";
 import { useClinica } from "../../Context/ClinicaContextFb";
 import QRCode from "react-qr-code";
+import { useNavigate } from "react-router-dom";
+import { auth, db } from "../../Context/firebaseConfig";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 
 // Importar o contexto da clínica
 
-const MedicDashboard = ({ medicoId, clinicaId }) => {
-  console.log("Promps :>> ", medicoId, clinicaId);
-
+const MedicDashboard = () => {
   const {
     pacientes,
-    medicos,
-    clinicas,
     adicionarPaciente,
     atualizarPaciente,
     removerPaciente,
     listarExames,
     uploadExame,
-    isAuthed,
     // buscarClinicaPorId,
   } = useClinica();
-
-  console.log("pacientes :>> ", pacientes);
-  console.log("medicos :>> ", medicos);
-  console.log("clinicas :>> ", clinicas);
-  console.log("isAuthed :>> ", isAuthed);
 
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [openPatientDialog, setOpenPatientDialog] = useState(false);
@@ -79,8 +76,42 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
   const [openAddPatientDialog, setOpenAddPatientDialog] = useState(false);
   const [openUploadExameDialog, setOpenUploadExameDialog] = useState(false); // Controla a exibição do diálogo
   const [selectedFile, setSelectedFile] = useState(null); // Armazena o arquivo selecionado
+  const [showPatientCard, setShowPatientCard] = useState(false);
   const [exames, setExames] = useState([]); // Lista de exames existentes para o paciente
-  console.log("exames :>> ", exames);
+  const cardRef = useRef();
+  const handlePrint = () => {
+    const printContent = cardRef.current;
+    const printWindow = window.open("", "_blank");
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Cartão do Paciente</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+            .print-container {
+              display: flex; 
+              align-items: center; 
+              justify-content: space-between; 
+              padding: 20px; 
+              border: 1px solid #ccc; 
+              border-radius: 8px;
+              max-width: 60%; 
+              margin: auto; 
+            }
+            .print-qr { flex: 1; text-align: center; }
+            .print-info { flex: 2; padding-left: 20px; }
+            .print-info h5 { margin-bottom: 10px; }
+          </style>
+        </head>
+        <body>
+          <div class="print-container">${printContent.innerHTML}</div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
   const [newMedicamento, setNewMedicamento] = useState({
     nome: "",
     dosagem: "",
@@ -91,9 +122,6 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
   });
   const [medico, setMedico] = useState("");
   const [clinica, setClinica] = useState("");
-
-  console.log("Clinica: ", clinica);
-  console.log("Médico: ", medico);
 
   const [newPatient, setNewPatient] = useState({
     nome: "",
@@ -119,6 +147,9 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
   const handleViewPatient = (patient) => {
     setSelectedPatient(patient);
     setOpenPatientDialog(true);
+  };
+  const handleGenerateCard = () => {
+    setShowPatientCard(true); // Exibe o modal do cartão
   };
 
   const handleAddMedicacao = (medicamento) => {
@@ -180,7 +211,6 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
 
     // Abrir o diálogo de edição
     setOpenUploadExameDialog(true);
-    console.log("editedPatient.id :>> ", editedPatient.id);
     listarExames(editedPatient.id).then(setExames).catch(console.error); // Atualiza a lista ao abrir
   };
 
@@ -215,6 +245,69 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
         return "success";
     }
   };
+  const navigate = useNavigate();
+  const handleLogOut = () => {
+    if (window.confirm("Desconectar-se?")) {
+      auth
+        .signOut()
+        .then(() => {
+          navigate("/");
+        })
+        .catch((error) => {
+          console.error("Erro ao desconectar:", error);
+        });
+    }
+  };
+
+  const selecionarMedico = async () => {
+    try {
+      const uid = auth.currentUser?.uid;
+      if (!uid) throw new Error("Usuário não autenticado");
+
+      const medicoRef = collection(db, "medicos");
+      const medicoQuery = query(medicoRef, where("userAtrelado", "==", uid));
+      const querySnapshot = await getDocs(medicoQuery);
+
+      if (querySnapshot.empty) {
+        throw new Error("Nenhum médico encontrado para este usuário.");
+      }
+
+      const medicoSelecionado = querySnapshot.docs[0].data();
+      setMedico(medicoSelecionado);
+
+      // Busca a clínica associada ao médico
+      if (medicoSelecionado?.consultorioId) {
+        await selecionarClinica(medicoSelecionado?.consultorioId);
+      }
+    } catch (error) {
+      console.error("Erro ao selecionar médico:", error);
+      // setError(error.message);
+    }
+  };
+
+  // Função para buscar a clínica com base no consultorioId
+  const selecionarClinica = async (consultorioId) => {
+    try {
+      const clinicaRef = doc(db, "clinicas", consultorioId); // Referência ao documento da clínica
+      const clinicaSnap = await getDoc(clinicaRef);
+
+      if (!clinicaSnap.exists()) {
+        throw new Error("Clínica não encontrada.");
+      }
+
+      const clinicaData = clinicaSnap.data();
+      setClinica(clinicaData);
+    } catch (error) {
+      console.error("Erro ao selecionar clínica:", error);
+      // setError(error.message);
+    } finally {
+      // setLoading(false); // Finaliza o carregamento
+    }
+  };
+
+  useEffect(() => {
+    selecionarMedico(); // eslint-disable-next-line
+  }, []); // Executa ao montar o componente
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
@@ -281,50 +374,7 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
                   )}
                 </>
               ) : (
-                <>
-                  <Typography variant="h6" gutterBottom>
-                    Escolha de Médico
-                  </Typography>
-                  <FormControl sx={{ m: 1, width: "80%" }}>
-                    <InputLabel id="multiple-Medico-label">Medico</InputLabel>
-                    <Select
-                      labelId="multiple-Medico-label"
-                      id="multiple-Medico"
-                      value={medico}
-                      onChange={(e) => {
-                        const selected = e.target.value;
-                        setMedico(selected);
-                      }}
-                    >
-                      {medicos.map((medico) => (
-                        <MenuItem key={medico.id} value={medico}>
-                          {medico.nomeSocial}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  <Typography variant="h6" gutterBottom>
-                    Escolha de Clinica
-                  </Typography>
-                  <FormControl sx={{ m: 1, width: "80%" }}>
-                    <InputLabel id="multiple-clinica-label">Clinica</InputLabel>
-                    <Select
-                      labelId="multiple-clinica-label"
-                      id="multiple-clinica"
-                      value={clinica}
-                      onChange={(e) => {
-                        const selected = e.target.value;
-                        setClinica(selected);
-                      }}
-                    >
-                      {clinicas.map((clinica) => (
-                        <MenuItem key={clinica.id} value={clinica}>
-                          {clinica.nomeResumo}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </>
+                <></>
               )}
             </CardContent>
           </Card>
@@ -482,6 +532,14 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
                 ))}
             </CardContent>
           </Card>
+          <Button
+            className="mt-2"
+            variant="contained"
+            color="secondary"
+            onClick={handleLogOut}
+          >
+            Sair
+          </Button>
         </Grid>
       </Grid>
 
@@ -514,7 +572,22 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
               <Typography>Email: {selectedPatient.email}</Typography>
               <Typography>Telefone: {selectedPatient.telefone}</Typography>
               <Typography>
-                Observações: {selectedPatient.observacaoDoMedico}
+                Observações:{" "}
+                {
+                  <Box
+                    sx={{
+                      maxHeight: "10rem", // Limita a altura
+                      overflow: "auto", // Adiciona barra de rolagem se necessário
+                      whiteSpace: "pre-wrap", // Quebra linhas automaticamente
+                      padding: "8px", // Adiciona espaçamento interno
+                      backgroundColor: "#f4f4f4", // Fundo para destaque
+                      borderRadius: "4px", // Bordas arredondadas
+                      border: "1px solid #ccc", // Bordas finas
+                    }}
+                  >
+                    {selectedPatient.observacaoDoMedico}
+                  </Box>
+                }
               </Typography>
               <Typography>
                 Medicametos:{" "}
@@ -524,19 +597,100 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
                       .join(", ")
                   : "Nenhuma medicação informada"}
               </Typography>
-              <Link
-                href={`http://192.168.0.99:3000/paciente/${selectedPatient.id}`}
-                target="_blank"
+              <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+                sx={{ mt: 2 }}
+                onClick={handleGenerateCard}
               >
-                <QRCode
-                  title={`http://192.168.0.99:3000/paciente/${selectedPatient.id}`}
-                  value={`http://192.168.0.99:3000/paciente/${selectedPatient.id}`}
-                />
-              </Link>
+                Gerar Cartão do Paciente
+              </Button>
             </Box>
           )}
         </DialogContent>
       </Dialog>
+      {/* Dialog do Cartão do Paciente */}
+      <Dialog
+        open={showPatientCard}
+        onClose={() => setShowPatientCard(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Cartão do Paciente</DialogTitle>
+        <DialogContent>
+          {selectedPatient && (
+            <Box
+              ref={cardRef}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: 2,
+                border: "1px solid #ccc",
+                borderRadius: "8px",
+                backgroundColor: "#f9f9f9",
+              }}
+            >
+              {/* QR Code à esquerda */}
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  flex: "1",
+                  padding: 2,
+                }}
+              >
+                <QRCode
+                  value={`http://192.168.0.99:3000/paciente/${selectedPatient.id}`}
+                  size={150}
+                />
+              </Box>
+
+              {/* Informações do paciente à direita */}
+              <Box
+                sx={{
+                  flex: "2",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  gap: 2,
+                }}
+              >
+                <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+                  {selectedPatient.nome}
+                </Typography>
+                <Typography variant="body1">
+                  <strong>Idade:</strong>{" "}
+                  {new Date().getFullYear() -
+                    new Date(selectedPatient.dataNascimento).getFullYear()}
+                </Typography>
+                <Typography variant="body1">
+                  <strong>Risco Cardíaco:</strong>{" "}
+                  {selectedPatient.riscoCardiaco}
+                </Typography>
+                <Typography variant="body1">
+                  <strong>Email:</strong> {selectedPatient.email}
+                </Typography>
+                <Typography variant="body1">
+                  <strong>Telefone:</strong> {selectedPatient.telefone}
+                </Typography>
+              </Box>
+            </Box>
+          )}
+          <Button
+            variant="contained"
+            color="secondary"
+            fullWidth
+            sx={{ mt: 2 }}
+            onClick={handlePrint}
+          >
+            Imprimir Cartão
+          </Button>
+        </DialogContent>
+      </Dialog>
+
       {/* Dialog de Adicionar Paciente */}
       <Dialog
         open={openAddPatientDialog}
@@ -878,10 +1032,6 @@ const MedicDashboard = ({ medicoId, clinicaId }) => {
                       editedPatient.id
                     ); // Atualiza a lista de exames
                     setExames(arquivosAtualizados);
-                    console.log(
-                      "arquivosAtualizados :>> ",
-                      arquivosAtualizados
-                    );
                     alert("Exame enviado com sucesso!");
                     setSelectedFile(null); // Limpa o estado do arquivo
                   }
