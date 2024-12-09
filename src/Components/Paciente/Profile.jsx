@@ -107,6 +107,7 @@ const PatientPublicProfile = () => {
             padding: 2,
           }}
         >
+          <PersonIcon />
           <Typography variant="h5">{paciente.nome}</Typography>
           <Typography variant="subtitle1">
             Idade:{" "}
