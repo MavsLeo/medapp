@@ -10,12 +10,13 @@ import MedicDashboard from "./Components/Medico";
 import Login from "./Components/Login";
 import { useAuth } from "./Context/authUser";
 import ConsultasPage from "./Components/Consultas";
+import Carregando from "./Components/Carregando";
 
 function AppRoutes() {
   const { isAuthed, loading } = useAuth();
 
   if (loading) {
-    return <div>Carregando...</div>; // Exibe um placeholder enquanto verifica autenticação
+    return <Carregando />; // Exibe um placeholder enquanto verifica autenticação
   }
 
   return (
