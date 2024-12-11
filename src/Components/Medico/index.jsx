@@ -43,6 +43,7 @@ import {
   Edit as EditIcon,
   Report as ReportIcon,
   FilePresent as AnexarIcon,
+  Event as EventIcon,
 } from "@mui/icons-material";
 import { useClinica } from "../../Context/ClinicaContextFb";
 import QRCode from "react-qr-code";
@@ -130,6 +131,8 @@ const MedicDashboard = () => {
     telefone: "",
     medicacoes: [], // Array para medicamentos
     riscoCardiaco: "",
+    dataUltimaConsulta: "",
+    dataProximaConsulta: "",
   });
   const [editedPatient, setEditedPatient] = useState({
     nome: "",
@@ -195,6 +198,13 @@ const MedicDashboard = () => {
 
     // Abrir o diálogo de edição
     setOpenPatientEditDialog(true);
+  };
+  const handleOpenConsultas = (patient) => {
+    setSelectedPatient(patient);
+    console.log("selectedPatient.id :>> ", selectedPatient);
+    const pacienteId = selectedPatient?.id;
+    console.log("selectedPatient.id :>> ", pacienteId);
+    // navigate(`/id/${selectedPatient?.id}`);
   };
   const handleEditExames = (patient) => {
     // Preencher o estado de edição com os dados do paciente selecionado
@@ -370,12 +380,15 @@ const MedicDashboard = () => {
                       src={clinica.logo}
                     />
                   ) : (
-                    <HospitalIcon sx={{ mr: 2, fontSize: 40 }} />
+                    <>
+                      <HospitalIcon sx={{ mr: 2, fontSize: 40 }} />
+                    </>
                   )}
                 </>
               ) : (
                 <></>
               )}
+              <Button href="/consulta">Consultas</Button>
             </CardContent>
           </Card>
           <Card>
@@ -476,6 +489,13 @@ const MedicDashboard = () => {
                             color="secondary"
                           >
                             <AnexarIcon />
+                          </IconButton>
+                          <IconButton
+                            title="Anexar"
+                            onClick={() => handleOpenConsultas(patient)}
+                            color="secondary"
+                          >
+                            <EventIcon />
                           </IconButton>
                           <IconButton
                             title="Excluir Paciente"
@@ -642,10 +662,16 @@ const MedicDashboard = () => {
                   padding: 2,
                 }}
               >
-                <QRCode
-                  value={`http://medappemcor.vercel.app/paciente/${selectedPatient.id}`}
-                  size={150}
-                />
+                <a
+                  href={`http://medappemcor.vercel.app/paciente/${selectedPatient.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <QRCode
+                    value={`http://medappemcor.vercel.app/paciente/${selectedPatient.id}`}
+                    size={150}
+                  />
+                </a>
               </Box>
 
               {/* Informações do paciente à direita */}

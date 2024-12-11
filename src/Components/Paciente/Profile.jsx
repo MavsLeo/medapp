@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
-  CardContent,
+  CardContent, // eslint-disable-next-line
   Avatar,
   Divider,
   List,
@@ -23,12 +23,19 @@ import {
 } from "@mui/icons-material";
 import { useParams } from "react-router-dom";
 import { useClinica } from "../../Context/ClinicaContextFb";
+import { format } from "./../../../node_modules/date-fns/format";
+import { ptBR } from "./../../../node_modules/date-fns/locale/pt-BR";
 
 const PatientPublicProfile = () => {
   const { id } = useParams(); // Pega o id do paciente da URL
   const { buscarPacientePorId } = useClinica(); // Função para buscar paciente
   const [paciente, setPaciente] = useState(null); // Armazena os dados do paciente
   const [erro, setErro] = useState(null); // Armazena erro caso não encontre paciente
+
+  console.log(
+    "paciente.dataProximaConsulta :>> ",
+    paciente?.dataProximaConsulta
+  );
 
   useEffect(() => {
     // Chama a função para buscar o paciente assim que o componente for montado
@@ -152,7 +159,20 @@ const PatientPublicProfile = () => {
               <ListItemIcon>
                 <ReportIcon color={getRiskColor(paciente.riscoCardiaco)} />
               </ListItemIcon>
-              <ListItemText primary="Última Consulta" secondary="11/05/2024" />
+              <ListItemText
+                primary="Última Consulta"
+                secondary={
+                  paciente?.dataUltimaConsulta
+                    ? format(
+                        new Date(paciente?.dataUltimaConsulta),
+                        "dd/MM/yyyy",
+                        {
+                          locale: ptBR,
+                        }
+                      )
+                    : "Não informado"
+                }
+              />
             </ListItem>
 
             <Divider variant="inset" component="li" />
@@ -161,7 +181,20 @@ const PatientPublicProfile = () => {
               <ListItemIcon>
                 <HospitalIcon color={getRiskColor(paciente.riscoCardiaco)} />
               </ListItemIcon>
-              <ListItemText primary="Próxima Consulta" secondary="22/12/2024" />
+              <ListItemText
+                primary="Próxima Consulta"
+                secondary={
+                  paciente?.dataProximaConsulta
+                    ? format(
+                        new Date(paciente?.dataProximaConsulta),
+                        "dd/MM/yyyy",
+                        {
+                          locale: ptBR,
+                        }
+                      )
+                    : "Não informado"
+                }
+              />
             </ListItem>
 
             <Divider variant="inset" component="li" />
