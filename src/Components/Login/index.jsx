@@ -85,11 +85,23 @@ export default function MedicalClinicLogin() {
           sx={{
             backgroundImage: `url(${ambul})`, // Replace with actual medical clinic image
             backgroundRepeat: "no-repeat",
-            backgroundSize: "cover",
+            backgroundSize: "contain",
             backgroundPosition: "center",
           }}
         />
-        <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
+        <Grid
+          item
+          xs={12}
+          sm={8}
+          md={5}
+          component={Paper}
+          elevation={6}
+          square
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
           <Box
             sx={{
               my: 8,
@@ -97,6 +109,7 @@ export default function MedicalClinicLogin() {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
+              justifyContent: "center",
             }}
           >
             {/* <Avatar sx={{ m: 1, bgcolor: "primary.main" }}> */}

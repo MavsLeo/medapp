@@ -32,10 +32,7 @@ const PatientPublicProfile = () => {
   const [paciente, setPaciente] = useState(null); // Armazena os dados do paciente
   const [erro, setErro] = useState(null); // Armazena erro caso não encontre paciente
 
-  console.log(
-    "paciente.dataProximaConsulta :>> ",
-    paciente?.dataProximaConsulta
-  );
+  console.log("ID do paciente:", id); // Log para verificar o ID do paciente
 
   useEffect(() => {
     // Chama a função para buscar o paciente assim que o componente for montado

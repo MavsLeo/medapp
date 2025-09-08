@@ -663,12 +663,12 @@ const MedicDashboard = () => {
                 }}
               >
                 <a
-                  href={`http://medappemcor.vercel.app/paciente/${selectedPatient.id}`}
+                  href={`http://localhost:3000/paciente/${selectedPatient.id}`}
                   target="_blank"
                   rel="noreferrer"
                 >
                   <QRCode
-                    value={`http://medappemcor.vercel.app/paciente/${selectedPatient.id}`}
+                    value={`http://192.168.10.197:3000/paciente/${selectedPatient.id}`}
                     size={150}
                   />
                 </a>
